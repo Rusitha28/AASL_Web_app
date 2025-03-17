@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Webcam Capture</title>
+    <style>
+        body { text-align: center; font-family: Arial, sans-serif; }
+        img { width: 640px; height: 480px; border: 2px solid black; display: block; margin: auto; }
+        button { margin: 5px; padding: 10px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>Webcam Capture</h1>
+    <img src="" id="videoFeed">
+
+    <br><br>
+    <!-- Buttons for saving images (Capturing occurs automatically when clicked) -->
+    <button onclick="captureImage('Female')">Female</button>
+    <button onclick="captureImage('Male')">Male</button>
+    <button onclick="captureImage('Animals')">Animals</button>
+    <button onclick="captureImage('Plants')">Plants</button>
+
+    <br><br>
+    <!-- Start/Stop Camera Button -->
+    <button id="toggleCameraBtn" onclick="toggleCamera()">Start Camera</button>
+
+    <script>
+        let cameraRunning = false;
+        let videoFeed = document.getElementById("videoFeed");
+        let toggleCameraBtn = document.getElementById("toggleCameraBtn");
+
+        function toggleCamera() {
+            if (!cameraRunning) {
+                startCamera();
+            } else {
+                stopCamera();
+            }
+        }
+
+        function startCamera() {
+            fetch('/start_camera', { method: 'POST' })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === "started") {
+                    videoFeed.src = "/video_feed";  // Fix: Directly assign the video feed URL
+                    toggleCameraBtn.textContent = "Stop Camera";
+                    cameraRunning = true;
+                } else if (data.status === "error") {
+                    alert(data.message);
+                }
+            })
+            .catch(error => console.log("Error: ", error));
+        }
+
+        function stopCamera() {
+            fetch('/stop_camera', { method: 'POST' })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === "stopped") {
+                    videoFeed.src = "";  // Fix: Remove video feed when stopping camera
+                    toggleCameraBtn.textContent = "Start Camera";
+                    cameraRunning = false;
+                }
+            })
+            .catch(error => console.log("Error: ", error));
+        }
+
+        function captureImage(category) {
+            fetch('/capture', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: 'category=' + category
+            }).then(response => response.text())
+              .then(data => alert(data))
+              .catch(error => console.log("Error: ", error));
+        }
+    </script>
+</body>
+</html>
