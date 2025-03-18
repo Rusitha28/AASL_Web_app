@@ -1,6 +1,7 @@
 from flask import Flask, render_template, Response, request, jsonify
 import cv2
 import os
+import numpy as np
 from datetime import datetime
 
 app = Flask(__name__)
@@ -12,6 +13,40 @@ for folder in folders:
 
 # Initialize camera as None initially
 camera = None
+
+def preprocess_image(frame):
+    """
+    Preprocess the captured image:
+    1. Convert to grayscale
+    2. Resize to 64x64
+    3. Normalize pixel values (0-1)
+    4. Expand dimensions to match model input shape
+    5. Convert grayscale to 3-channel RGB format
+    6. Convert back to 8-bit integer format
+    7. Add batch dimension if needed
+    """
+    # Convert to grayscale
+    gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    
+    # Resize to 64x64 pixels
+    resized_frame = cv2.resize(gray_frame, (64, 64), interpolation=cv2.INTER_AREA)
+    
+    # Normalize (convert pixel values to range 0-1)
+    normalized_frame = resized_frame.astype(np.float32) / 255.0
+    
+    # Expand dimensions to add a single grayscale channel
+    expanded_frame = np.expand_dims(normalized_frame, axis=-1)
+    
+    # Convert grayscale to 3 channels (Duplicate grayscale values across RGB channels)
+    rgb_frame = np.concatenate([expanded_frame] * 3, axis=-1)
+    
+    # Convert back to 8-bit unsigned integer format (0-255)
+    rgb_frame = (rgb_frame * 255).astype(np.uint8)
+    
+    # Add batch dimension (useful for models requiring batch input)
+    batch_frame = np.expand_dims(rgb_frame, axis=0)
+    
+    return batch_frame
 
 @app.route('/')
 def index():
@@ -70,16 +105,13 @@ def capture():
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         save_path = f"saved_data/{category}/image_{timestamp}.jpg"
 
-        # Convert image to grayscale
-        gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        # Apply preprocessing
+        processed_frame = preprocess_image(frame)
 
-        # Resize the image to 64x64 pixels
-        resized_frame = cv2.resize(gray_frame, (64, 64), interpolation=cv2.INTER_AREA)
+        # Save the preprocessed image
+        cv2.imwrite(save_path, processed_frame[0])  # Extract single image from batch
 
-        # Save the processed grayscale image
-        cv2.imwrite(save_path, resized_frame)
-
-        return f"Image saved in {category} folder (Converted to Grayscale, Resized to 64x64)"
+        return f"Image saved in {category} folder (Preprocessed: Grayscale, 64x64, RGB, Normalized)"
 
     return "Capture failed"
 
