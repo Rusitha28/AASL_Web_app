@@ -3,19 +3,74 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Webcam Capture</title>
+    <title>AASL PYTHON - Webcam Capture</title>
     <style>
-        body { text-align: center; font-family: Arial, sans-serif; }
-        img { width: 640px; height: 480px; border: 2px solid black; display: block; margin: auto; }
-        button { margin: 5px; padding: 10px; cursor: pointer; }
+        /* Fading Dark Blue Background */
+        body {
+            text-align: center;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(to bottom, rgb(27, 37, 54), rgb(90, 137, 216));
+            color: white;
+            margin: 0;
+            padding: 0;
+        }
+
+        h1 {
+            margin-top: 50px;
+            font-size: 2.5em;
+        }
+
+        /* Styling the Camera Frame */
+        img {
+            width: 640px;
+            height: 480px;
+            border-radius: 15px; /* Curved edges */
+            border: 3px solid white; /* White border */
+            display: block;
+            margin: 30px auto;
+            box-shadow: 0px 0px 15px rgba(255, 255, 255, 0.4);
+        }
+
+        /* Solid Yellow Buttons */
+        button {
+            background: #FFD700; /* Solid yellow */
+            color: black; /* Black text for contrast */
+            font-size: 1.1em;
+            font-weight: bold;
+            border: 2px solid yellow; /* Same as background */
+            border-radius: 10px;
+            padding: 15px 30px;
+            cursor: pointer;
+            margin: 10px;
+            transition: all 0.3s ease;
+        }
+
+        /* Button Hover Effect - Slightly Darker Yellow */
+        button:hover {
+            transform: scale(1.1);
+            background: #FFD700; /* Darker shade of yellow */
+        }
+
+        /* Start/Stop Camera Button Styling */
+        #toggleCameraBtn {
+            background: rgba(9, 11, 94, 0.6);
+            border: 2px solid white;
+            color: white;
+        }
+
+        #toggleCameraBtn:hover {
+            background: rgba(0, 123, 181, 0.8);
+        }
+
     </style>
 </head>
 <body>
+    <h1>Airport & Aviation Services Sri Lanka <br> Python Project</h1>
     <h1>Webcam Capture</h1>
     <img src="" id="videoFeed">
 
     <br><br>
-    <!-- Buttons for saving images (Capturing occurs automatically when clicked) -->
+    <!-- Buttons for saving images -->
     <button onclick="captureImage('Female')">Female</button>
     <button onclick="captureImage('Male')">Male</button>
     <button onclick="captureImage('Animals')">Animals</button>
@@ -43,7 +98,7 @@
             .then(response => response.json())
             .then(data => {
                 if (data.status === "started") {
-                    videoFeed.src = "/video_feed";  // Fix: Directly assign the video feed URL
+                    videoFeed.src = "/video_feed";  
                     toggleCameraBtn.textContent = "Stop Camera";
                     cameraRunning = true;
                 } else if (data.status === "error") {
@@ -58,7 +113,7 @@
             .then(response => response.json())
             .then(data => {
                 if (data.status === "stopped") {
-                    videoFeed.src = "";  // Fix: Remove video feed when stopping camera
+                    videoFeed.src = "";  
                     toggleCameraBtn.textContent = "Start Camera";
                     cameraRunning = false;
                 }

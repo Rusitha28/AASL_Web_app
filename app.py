@@ -10,7 +10,7 @@ folders = ['saved_data/Female', 'saved_data/Male', 'saved_data/Animals', 'saved_
 for folder in folders:
     os.makedirs(folder, exist_ok=True)
 
-# Camera state
+# Initialize camera as None initially
 camera = None
 
 @app.route('/')
@@ -38,7 +38,7 @@ def stop_camera():
 @app.route('/video_feed')
 def video_feed():
     global camera
-    if camera is None:
+    if camera is None or not camera.isOpened():
         return jsonify({'status': 'error', 'message': 'Camera is not running'})
 
     def generate_frames():
@@ -69,8 +69,17 @@ def capture():
     if success:
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         save_path = f"saved_data/{category}/image_{timestamp}.jpg"
-        cv2.imwrite(save_path, frame)
-        return f"Image saved in {category} folder"
+
+        # Convert image to grayscale
+        gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+
+        # Resize the image to 64x64 pixels
+        resized_frame = cv2.resize(gray_frame, (64, 64), interpolation=cv2.INTER_AREA)
+
+        # Save the processed grayscale image
+        cv2.imwrite(save_path, resized_frame)
+
+        return f"Image saved in {category} folder (Converted to Grayscale, Resized to 64x64)"
 
     return "Capture failed"
 
